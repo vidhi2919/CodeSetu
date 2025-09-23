@@ -132,13 +132,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Search, ArrowRight } from "lucide-react"
+import { Search, ArrowRight, Clock, Trash2 } from "lucide-react"
 import { ChatbotWidget } from "@/components/chatbot-widget"
+
+// Define type for search history
+interface SearchHistoryItem {
+  id: string
+  query: string
+  disease: string
+  namasteCode: string
+  icd11Code: string
+  timestamp: Date
+  insuranceEligible: boolean
+}
 
 export default function SearchDiseasePage() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([])
 
   const handleSearch = async () => {
     if (!query.trim()) return
@@ -159,6 +171,19 @@ export default function SearchDiseasePage() {
         symptoms: ["Excessive urination", "Increased thirst", "Fatigue", "Blurred vision"],
       }
       setResults(mockResult)
+      
+      // Add to search history
+      const newSearchItem: SearchHistoryItem = {
+        id: Date.now().toString(),
+        query: query,
+        disease: mockResult.disease,
+        namasteCode: mockResult.namasteCode,
+        icd11Code: mockResult.icd11Code,
+        timestamp: new Date(),
+        insuranceEligible: mockResult.insuranceEligible
+      }
+      
+      setSearchHistory(prev => [newSearchItem, ...prev.slice(0, 9)]) // Keep last 10 searches
       setIsLoading(false)
     }, 1000)
   }
@@ -168,6 +193,18 @@ export default function SearchDiseasePage() {
     setResults(null)
   }
 
+  const clearSearchHistory = () => {
+    setSearchHistory([])
+  }
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString()
+  }
+
   // Initial centered state
   if (!results) {
     return (
@@ -175,7 +212,7 @@ export default function SearchDiseasePage() {
         <Sidebar />
         <main className="flex-1 ml-64">
           <div className="p-6">
-            {/* Page Heading (moved out of the box) */}
+            {/* Page Heading */}
             <div className="max-w-5xl mx-auto text-center mb-8">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3">
                 <Search className="w-6 h-6" />
@@ -239,7 +276,7 @@ export default function SearchDiseasePage() {
                     </button>
                   </div>
 
-                  {/* Info box (keeps same visual weight as Search by Code page) */}
+                  {/* Info box */}
                   <div className="mt-4 rounded-lg border bg-blue-50/70 text-blue-900 p-4">
                     <div className="font-semibold mb-1">Example Diagnoses</div>
                     <div className="text-sm space-y-1">
@@ -287,6 +324,82 @@ export default function SearchDiseasePage() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Search History Table */}
+            {searchHistory.length > 0 && (
+              <div className="max-w-5xl mx-auto mt-8">
+                <Card className="bg-card/70 border-border/60 rounded-2xl">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="w-5 h-5" />
+                        Recent Searches
+                      </CardTitle>
+                      <Button variant="outline" size="sm" onClick={clearSearchHistory}>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Clear History
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-t-lg border-b text-sm font-semibold">
+                      <div className="col-span-2">Time</div>
+                      <div className="col-span-2">Search Query</div>
+                      <div className="col-span-3">Disease</div>
+                      <div className="col-span-2">NAMASTE Code</div>
+                      <div className="col-span-2">ICD-11 Code</div>
+                      <div className="col-span-1">Insurance</div>
+                    </div>
+                    
+                    {/* Table Body */}
+                    <div className="max-h-64 overflow-y-auto">
+                      {searchHistory.map((item) => (
+                        <div 
+                          key={item.id} 
+                          className="grid grid-cols-12 gap-4 px-4 py-3 border-b hover:bg-muted/30 cursor-pointer transition-colors"
+                          onClick={() => {
+                            setQuery(item.query)
+                            handleSearch()
+                          }}
+                        >
+                          <div className="col-span-2">
+                            <div className="text-xs">
+                              <div>{formatDate(item.timestamp)}</div>
+                              <div className="text-muted-foreground">{formatTime(item.timestamp)}</div>
+                            </div>
+                          </div>
+                          <div className="col-span-2 font-medium text-sm">{item.query}</div>
+                          <div className="col-span-3 text-sm truncate" title={item.disease}>{item.disease}</div>
+                          <div className="col-span-2">
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {item.namasteCode}
+                            </Badge>
+                          </div>
+                          <div className="col-span-2">
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {item.icd11Code}
+                            </Badge>
+                          </div>
+                          <div className="col-span-1">
+                            <Badge 
+                              variant={item.insuranceEligible ? "default" : "secondary"} 
+                              className={`text-xs ${item.insuranceEligible ? "bg-green-100 text-green-800" : ""}`}
+                            >
+                              {item.insuranceEligible ? "Eligible" : "Not Eligible"}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="text-xs text-muted-foreground mt-2 text-center">
+                      Click on any row to search again
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </main>
         <ChatbotWidget />
@@ -414,6 +527,82 @@ export default function SearchDiseasePage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Search History Table */}
+          {searchHistory.length > 0 && (
+            <div className="mt-6 max-w-5xl mx-auto">
+              <Card className="bg-background rounded-2xl">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="w-5 h-5" />
+                      Recent Searches
+                    </CardTitle>
+                    <Button variant="outline" size="sm" onClick={clearSearchHistory}>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Clear History
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {/* Table Header */}
+                  <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 rounded-t-lg border-b text-sm font-semibold">
+                    <div className="col-span-2">Time</div>
+                    <div className="col-span-2">Search Query</div>
+                    <div className="col-span-3">Disease</div>
+                    <div className="col-span-2">NAMASTE Code</div>
+                    <div className="col-span-2">ICD-11 Code</div>
+                    <div className="col-span-1">Insurance</div>
+                  </div>
+                  
+                  {/* Table Body */}
+                  <div className="max-h-64 overflow-y-auto">
+                    {searchHistory.map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="grid grid-cols-12 gap-4 px-4 py-3 border-b hover:bg-muted/30 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setQuery(item.query)
+                          handleSearch()
+                        }}
+                      >
+                        <div className="col-span-2">
+                          <div className="text-xs">
+                            <div>{formatDate(item.timestamp)}</div>
+                            <div className="text-muted-foreground">{formatTime(item.timestamp)}</div>
+                          </div>
+                        </div>
+                        <div className="col-span-2 font-medium text-sm">{item.query}</div>
+                        <div className="col-span-3 text-sm truncate" title={item.disease}>{item.disease}</div>
+                        <div className="col-span-2">
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {item.namasteCode}
+                          </Badge>
+                        </div>
+                        <div className="col-span-2">
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {item.icd11Code}
+                          </Badge>
+                        </div>
+                        <div className="col-span-1">
+                          <Badge 
+                            variant={item.insuranceEligible ? "default" : "secondary"} 
+                            className={`text-xs ${item.insuranceEligible ? "bg-green-100 text-green-800" : ""}`}
+                          >
+                            {item.insuranceEligible ? "Eligible" : "Not Eligible"}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground mt-2 text-center">
+                    Click on any row to search again
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </main>
       <ChatbotWidget />
