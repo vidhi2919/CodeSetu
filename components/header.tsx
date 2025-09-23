@@ -36,8 +36,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="max-w-7xl mx-auto px-4 grid grid-cols-3 h-16 items-center">
+        {/* Left: Logo + version */}
+        <div className="flex items-center gap-4 col-start-1 col-end-2">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">AI</span>
@@ -52,7 +53,8 @@ export function Header() {
           </Badge>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
+        {/* Center: Nav links */}
+        <nav className="hidden md:flex items-center justify-center gap-6 col-start-2 col-end-3">
           <Link href="/search" className="text-sm font-medium hover:text-primary transition-colors">
             Search by Disease
           </Link>
@@ -70,7 +72,8 @@ export function Header() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2">
+        {/* Right: Controls */}
+        <div className="flex items-center justify-end gap-2 col-start-3 col-end-4">
           <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
             <Globe className="h-4 w-4 mr-2" />
             EN
