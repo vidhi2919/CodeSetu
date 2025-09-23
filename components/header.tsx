@@ -54,23 +54,24 @@ export function Header() {
         </div>
 
         {/* Center: Nav links */}
-        <nav className="hidden md:flex items-center justify-center gap-6 col-start-2 col-end-3">
-          <Link href="/search" className="text-sm font-medium hover:text-primary transition-colors">
-            Search by Disease
-          </Link>
-          <Link href="/search-code" className="text-sm font-medium hover:text-primary transition-colors">
-            Search by Code
-          </Link>
-          <Link href="/symptom-checker" className="text-sm font-medium hover:text-primary transition-colors">
-            Symptom Checker
-          </Link>
-          <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
-            Analytics
-          </Link>
-          <Link href="/insurance" className="text-sm font-medium hover:text-primary transition-colors">
-            Insurance
-          </Link>
-        </nav>
+        <nav className="hidden md:flex items-center justify-center gap-10 col-start-2 col-end-3">
+  <Link href="/search" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
+    Diseases
+  </Link>
+  <Link href="/search-code" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
+    Coding Tool
+  </Link>
+  <Link href="/symptom-checker" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
+    Symptoms
+  </Link>
+  <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
+    Insights
+  </Link>
+  <Link href="/insurance" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
+    Insurance
+  </Link>
+</nav>
+
 
         {/* Right: Controls */}
         <div className="flex items-center justify-end gap-2 col-start-3 col-end-4">

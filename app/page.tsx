@@ -27,28 +27,28 @@ import Link from "next/link"
 const features = [
   {
     icon: Search,
-    title: "Search by Disease",
+    title: "Diseases",
     description: "Find ICD-11 codes for AYUSH disease names with intelligent matching",
     href: "/search",
     color: "text-blue-600",
   },
   {
     icon: Code,
-    title: "Search by Code",
+    title: "ICD Codes",
     description: "Enter NAMASTE or ICD-11 codes to find comprehensive disease details",
     href: "/search-code",
     color: "text-green-600",
   },
   {
     icon: Stethoscope,
-    title: "Symptom Checker",
+    title: "Symptoms",
     description: "Advanced symptom analysis to identify matching diseases and conditions",
     href: "/symptom-checker",
     color: "text-purple-600",
   },
   {
     icon: BarChart3,
-    title: "Analytics Dashboard",
+    title: "Insights",
     description: "Comprehensive coding statistics, insights, and performance metrics",
     href: "/dashboard",
     color: "text-orange-600",
