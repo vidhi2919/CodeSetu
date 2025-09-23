@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Globe, Menu, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -38,20 +39,22 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-3 h-16 items-center">
         {/* Left: Logo + version */}
-        <div className="flex items-center gap-4 col-start-1 col-end-2">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">AI</span>
-            </div>
-            <div>
-              <h1 className="font-bold text-lg">AYUSH-ICD11</h1>
-              <p className="text-xs text-muted-foreground">Interoperability Platform</p>
-            </div>
-          </div>
-          <Badge variant="secondary" className="hidden sm:inline-flex">
-            v2.1.0
-          </Badge>
-        </div>
+<div className="flex items-center gap-4 col-start-1 col-end-2">
+  <div className="flex items-center gap-2">
+    {/* Replace text with logo image */}
+    <Image
+      src="/logo.png"
+      alt="Naमः Logo"
+      width={100}
+      height={40}
+      className="rounded-lg"
+    />
+  </div>
+  <Badge variant="secondary" className="hidden sm:inline-flex">
+    v2.1.0
+  </Badge>
+</div>
+
 
         {/* Center: Nav links */}
         <nav className="hidden md:flex items-center justify-center gap-10 col-start-2 col-end-3">

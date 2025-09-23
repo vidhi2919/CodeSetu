@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
+import Image from "next/image"
 
 const navigation = [
   { name: "Home", href: "/", icon: Home },
@@ -35,17 +36,20 @@ export function Sidebar() {
     <div className="fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="flex items-center h-16 px-6 border-b border-sidebar-border">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-sidebar-primary to-sidebar-accent rounded-lg flex items-center justify-center">
-              <span className="text-sidebar-primary-foreground font-bold text-sm">A</span>
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-sidebar-foreground">AYUSH</h1>
-              <p className="text-xs text-muted-foreground">Dual Coding Service</p>
-            </div>
-          </div>
-        </div>
+        <div className="flex items-center h-16 border-b border-sidebar-border">
+  <div className="flex items-center">
+    <Image
+      src="/logo.png"
+      alt="AYUSH Logo"
+      width={150}
+      height={150}
+      className="rounded-lg object-contain"
+    />
+  </div>
+</div>
+
+
+
 
         <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center justify-between mb-4">
