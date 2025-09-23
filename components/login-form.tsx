@@ -93,6 +93,9 @@ export function LoginForm({ onLogin, isLoading = false }: LoginFormProps) {
               Forgot your password?
             </Button>
           </div>
+          <div className="text-center text-sm text-muted-foreground">
+            Not registered? <a href="/signup" className="text-secondary hover:underline">Sign up</a>
+          </div>
         </form>
       </CardContent>
     </Card>

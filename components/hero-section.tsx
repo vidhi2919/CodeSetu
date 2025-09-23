@@ -24,7 +24,7 @@ export function HeroSection() {
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button variant="outline" size="lg" className="text-lg px-8 bg-transparent">
-              View API Docs
+              Learn More
             </Button>
           </div>
         </div>

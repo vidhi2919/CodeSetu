@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { Search, FileText, BarChart3, Shield, Languages, Home, Code, Stethoscope, Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 
 const navigation = [
@@ -20,6 +21,15 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("ayush_user")
+    } catch (_) {}
+    router.push("/")
+    router.refresh?.()
+  }
 
   return (
     <div className="fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border">
@@ -91,7 +101,8 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border space-y-3">
+          <Button variant="outline" className="w-full" onClick={handleLogout}>Logout</Button>
           <p className="text-xs text-muted-foreground text-center">NAMASTE ↔ ICD-11 Integration</p>
         </div>
       </div>
