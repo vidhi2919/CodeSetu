@@ -1,15 +1,17 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
+import { auth } from "../firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -29,20 +31,31 @@ export default function SignupPage() {
     }
 
     setIsLoading(true)
-
-    // Mock signup - simulate API call
-    setTimeout(() => {
-      localStorage.setItem(
-        "ayush_user",
-        JSON.stringify({
-          email: formData.email,
-          name: formData.name,
-          loggedIn: true,
-        }),
+    try {
+      // Create user with Firebase
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
       )
+
+      // Update display name
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: formData.name,
+        })
+      }
+
+      console.log("User signed up:", userCredential.user)
+
+      // Redirect after signup
+      router.push("/dashboard")
+    } catch (error: any) {
+      console.error("Signup error:", error.message)
+      alert(error.message)
+    } finally {
       setIsLoading(false)
-      router.push("/")
-    }, 1000)
+    }
   }
 
   return (

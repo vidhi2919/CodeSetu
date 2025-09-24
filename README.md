@@ -1,30 +1,48 @@
-# AYUSH ICD-11 microservice
+# Namah
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+**High-Level Architecture for AYUSH ↔ ICD-11 Dual Coding**
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/vidhi2919s-projects/v0-ayush-icd-11-microservice)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/QEhQhh7iHRr)
+Namah is a modular, scalable, and secure API that enables seamless mapping between traditional AYUSH medical codes (NAMASTE) and WHO ICD-11 codes. It integrates AI/NLP-based mapping, insurance pre-checks, and FHIR-based interoperability.
 
-## Overview
+---
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## 🔑 Core Components
 
-## Deployment
+### 1. API Gateway (FastAPI Layer)
+- Exposes REST endpoints:
+  - `/search` → Search AYUSH/ICD codes  
+  - `/translate` → Translate between code systems  
+  - `/encounter` → Manage patient encounters  
+  - `/insurance` → Pre-check insurance eligibility  
+- Handles:
+  - Request validation  
+  - OAuth2 / ABHA authentication  
+  - Request routing to respective services  
 
-Your project is live at:
+### 2. Services Layer
 
-**[https://vercel.com/vidhi2919s-projects/v0-ayush-icd-11-microservice](https://vercel.com/vidhi2919s-projects/v0-ayush-icd-11-microservice)**
+| Service | Responsibility |
+|---------|----------------|
+| **AYUSH Service** | Reads NAMASTE codes from local DB/CSV |
+| **WHO ICD Service** | Connects to WHO ICD-11 API; manages tokens |
+| **Mapping Engine** | AI/NLP assistant aligning AYUSH ↔ ICD codes |
+| **Insurance Service** | Pre-checks claim eligibility and compliance |
 
-## Build your app
+### 3. Data Layer
+- **Primary DB:** PostgreSQL (FHIR resources, code mappings, encounters)  
+- **Offline/Cache DB:** SQLite for rural/offline deployments  
+- **Standards:** FHIR ConceptMap & CodeSystem for terminology standardization  
 
-Continue building your app on:
+### 4. Security & Compliance
+- OAuth2 + ABHA-linked identity  
+- Full audit logs for compliance (who searched, what codes mapped, when)  
 
-**[https://v0.app/chat/projects/QEhQhh7iHRr](https://v0.app/chat/projects/QEhQhh7iHRr)**
+### 5. Analytics & Monitoring
+- Dashboards for:
+  - Code usage statistics  
+  - Mapping gaps  
+  - Insurance claim trends  
+- System health metrics and logs  
 
-## How It Works
+---
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
