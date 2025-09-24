@@ -2,7 +2,7 @@
 
 **High-Level Architecture for AYUSH ↔ ICD-11 Dual Coding**
 
-Namah API is a modular, scalable, and secure API that enables seamless mapping between traditional AYUSH medical codes (NAMASTE) and WHO ICD-11 codes. It integrates AI/NLP-based mapping, insurance pre-checks, and FHIR-based interoperability.
+Namah is a modular, scalable, and secure API that enables seamless mapping between traditional AYUSH medical codes (NAMASTE) and WHO ICD-11 codes. It integrates AI/NLP-based mapping, insurance pre-checks, and FHIR-based interoperability.
 
 ---
 
