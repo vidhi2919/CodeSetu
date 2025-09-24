@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Search, ArrowRight, Clock, Trash2, Mic } from "lucide-react"
 import { ChatbotWidget } from "@/components/chatbot-widget"
+import Link from "next/link";
 
 // Define type for search history
 interface SearchHistoryItem {
@@ -392,9 +393,11 @@ export default function SearchDiseasePage() {
                     <ArrowRight className="w-4 h-4 mr-2" />
                     View in Search by Code
                   </Button>
-                  <Button variant="outline" size="sm">
-                    Add to Encounter Form
-                  </Button>
+                  <Link href="/encounter">
+                    <Button variant="outline" size="sm">
+                      Add to Encounter Form
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

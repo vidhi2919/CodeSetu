@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Search, Code, ArrowRight } from "lucide-react"
 import { ChatbotWidget } from "@/components/chatbot-widget"
+import Link from "next/link";
 
 export default function SearchCodePage() {
   const [code, setCode] = useState("")
@@ -234,9 +235,11 @@ export default function SearchCodePage() {
                     <ArrowRight className="w-4 h-4 mr-2" />
                     View in Search by Disease
                   </Button>
-                  <Button variant="outline" size="sm">
-                    Add to Encounter Form
-                  </Button>
+                  <Link href="/encounter">
+                    <Button variant="outline" size="sm">
+                      Add to Encounter Form
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
