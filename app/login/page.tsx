@@ -1,15 +1,18 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
+
+import { auth } from "../firebase"
+import { signInWithEmailAndPassword } from "firebase/auth"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -21,12 +24,25 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Mock login - simulate API call
-    setTimeout(() => {
+    try {
+      // Firebase sign in
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      console.log("User logged in:", userCredential.user)
+
+      // Optional: store user info in localStorage
       localStorage.setItem("ayush_user", JSON.stringify({ email, loggedIn: true }))
-      setIsLoading(false)
+
+      // Redirect after login
       router.push("/")
-    }, 1000)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message)
+      } else {
+        alert("Something went wrong during login")
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
