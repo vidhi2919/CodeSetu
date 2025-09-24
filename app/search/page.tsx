@@ -1,128 +1,3 @@
-// import { Sidebar } from "@/components/sidebar"
-// import { Search as SearchIcon } from "lucide-react"
-// import { SearchTranslate } from "@/components/search-translate"
-// import { ChatbotWidget } from "@/components/chatbot-widget"
-
-// export default function SearchPage() {
-//   return (
-//     <div className="flex min-h-screen bg-background">
-//       <Sidebar />
-//       <main className="flex-1 ml-64">
-//         <div className="p-6">
-//           <div className="max-w-5xl mx-auto text-center mb-8">
-//             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3">
-//               <SearchIcon className="w-6 h-6" />
-//             </div>
-//             <h1 className="text-3xl md:text-4xl font-bold">Search by Disease</h1>
-//             <p className="text-muted-foreground">Search AYUSH diagnoses and find corresponding ICD-11 codes</p>
-//           </div>
-//           <SearchTranslate />
-
-//           {/* How to Use box */}
-//           <div className="mt-4 max-w-5xl mx-auto">
-//             <div className="rounded-2xl border bg-card/70 p-6">
-//               <h3 className="text-lg font-semibold mb-4">How to Use Search by Disease</h3>
-//               <div className="grid md:grid-cols-2 gap-8 text-base text-muted-foreground">
-//                 <ul className="list-disc pl-5 space-y-1">
-//                   <li>Type diagnosis names in English or regional languages</li>
-//                   <li>Review matched NAMASTE and ICD-11 codes</li>
-//                   <li>Copy or save codes to your workflow</li>
-//                 </ul>
-//                 <ul className="list-disc pl-5 space-y-1">
-//                   <li>Use voice input for hands-free search</li>
-//                   <li>Click results to see descriptions and confidence</li>
-//                   <li>Switch to Search by Code for direct code lookup</li>
-//                 </ul>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </main>
-//       <ChatbotWidget />
-//     </div>
-//   )
-// }
-
-
-
-
-// "use client"
-
-// import { Sidebar } from "@/components/sidebar"
-// import { Search as SearchIcon } from "lucide-react"
-// import { SearchTranslate } from "@/components/search-translate"
-// import { ChatbotWidget } from "@/components/chatbot-widget"
-// import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
-
-// export default function SearchPage() {
-//   return (
-//     <div className="flex min-h-screen bg-background">
-//       <Sidebar />
-//       <main className="flex-1 ml-64">
-//         <div className="p-6">
-//           {/* Page Heading (same style as Search by Code) */}
-//           <div className="max-w-5xl mx-auto text-center mb-8">
-//             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3">
-//               <SearchIcon className="w-6 h-6" />
-//             </div>
-//             <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Search by Disease</h1>
-//             <p className="text-muted-foreground mt-1 text-base">
-//               Search AYUSH diagnoses and find corresponding ICD-11 codes
-//             </p>
-//           </div>
-
-//           {/* Search box inside Card (for alignment with Search by Code) */}
-//           <div className="flex items-start justify-center">
-//             <Card className="w-full max-w-5xl bg-gradient-to-br from-muted/40 to-background rounded-2xl shadow-sm border-border/60">
-//               <CardHeader>
-//                 <CardTitle className="flex items-center gap-2 text-xl">
-//                   <SearchIcon className="w-5 h-5" />
-//                   Disease Translator
-//                 </CardTitle>
-//                 <CardDescription className="text-base">
-//                   Enter a disease/diagnosis name to find mapped codes and metadata
-//                 </CardDescription>
-//               </CardHeader>
-//               <CardContent>
-//                 <SearchTranslate />
-//               </CardContent>
-//             </Card>
-//           </div>
-
-//           {/* How to Use box (aligned like Search by Code) */}
-//           <div className="max-w-5xl mx-auto mt-8">
-//             <Card className="bg-card/70 border-border/60 rounded-2xl">
-//               <CardHeader className="pb-2">
-//                 <CardTitle>How to Use Search by Disease</CardTitle>
-//               </CardHeader>
-//               <CardContent className="pt-0 py-6 min-h-[220px]">
-//                 <div className="grid md:grid-cols-2 gap-8 text-base">
-//                   <div>
-//                     <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-//                       <li>Type diagnosis names in English or regional languages</li>
-//                       <li>Review matched NAMASTE and ICD-11 codes</li>
-//                       <li>Copy or save codes to your workflow</li>
-//                     </ul>
-//                   </div>
-//                   <div>
-//                     <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-//                       <li>Use voice input for hands-free search</li>
-//                       <li>Click results to see descriptions and confidence</li>
-//                       <li>Switch to Search by Code for direct code lookup</li>
-//                     </ul>
-//                   </div>
-//                 </div>
-//               </CardContent>
-//             </Card>
-//           </div>
-//         </div>
-//       </main>
-//       <ChatbotWidget />
-//     </div>
-//   )
-// }
-
-
 "use client"
 
 import { useState } from "react"
@@ -132,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Search, ArrowRight, Clock, Trash2 } from "lucide-react"
+import { Search, ArrowRight, Clock, Trash2, Mic } from "lucide-react"
 import { ChatbotWidget } from "@/components/chatbot-widget"
 
 // Define type for search history
@@ -151,6 +26,8 @@ export default function SearchDiseasePage() {
   const [results, setResults] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([])
+
+  const handleVoiceInput = () => {}
 
   const handleSearch = async () => {
     if (!query.trim()) return
@@ -171,7 +48,7 @@ export default function SearchDiseasePage() {
         symptoms: ["Excessive urination", "Increased thirst", "Fatigue", "Blurred vision"],
       }
       setResults(mockResult)
-      
+
       // Add to search history
       const newSearchItem: SearchHistoryItem = {
         id: Date.now().toString(),
@@ -180,10 +57,10 @@ export default function SearchDiseasePage() {
         namasteCode: mockResult.namasteCode,
         icd11Code: mockResult.icd11Code,
         timestamp: new Date(),
-        insuranceEligible: mockResult.insuranceEligible
+        insuranceEligible: mockResult.insuranceEligible,
       }
-      
-      setSearchHistory(prev => [newSearchItem, ...prev.slice(0, 9)]) // Keep last 10 searches
+
+      setSearchHistory((prev) => [newSearchItem, ...prev.slice(0, 9)]) // Keep last 10 searches
       setIsLoading(false)
     }, 1000)
   }
@@ -198,7 +75,7 @@ export default function SearchDiseasePage() {
   }
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
   }
 
   const formatDate = (date: Date) => {
@@ -218,7 +95,9 @@ export default function SearchDiseasePage() {
                 <Search className="w-6 h-6" />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Search by Disease</h1>
-              <p className="text-muted-foreground mt-1 text-base">Search AYUSH diagnoses and find corresponding ICD-11 codes</p>
+              <p className="text-muted-foreground mt-1 text-base">
+                Search AYUSH diagnoses and find corresponding ICD-11 codes
+              </p>
             </div>
 
             <div className="flex items-start justify-center">
@@ -228,27 +107,37 @@ export default function SearchDiseasePage() {
                     <Search className="w-5 h-5" />
                     Disease Translator
                   </CardTitle>
-                  <CardDescription className="text-base">Enter a disease/diagnosis name to find mapped NAMASTE ↔ ICD-11 codes and metadata</CardDescription>
+                  <CardDescription className="text-base">
+                    Enter a disease/diagnosis name to find mapped NAMASTE ↔ ICD-11 codes and metadata
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto]">
                     <div className="flex flex-col">
-                      <Label htmlFor="disease" className="text-sm">Disease / Diagnosis</Label>
+                      <Label htmlFor="disease" className="text-sm">
+                        Disease / Diagnosis
+                      </Label>
                       <Input
                         id="disease"
                         placeholder="e.g., Prameha or Jwara"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                        className="border border-black focus-visible:ring-1 focus-visible:ring-black focus-visible:ring-offset-0"
                       />
                     </div>
                     <div className="flex items-end justify-end">
                       <div className="flex gap-2">
+                        <Button variant="outline" size="icon" aria-label="Voice search" onClick={handleVoiceInput}>
+                          <Mic className="w-4 h-4" />
+                        </Button>
                         <Button onClick={handleSearch} disabled={isLoading}>
                           <Search className="w-4 h-4 mr-2" />
                           {isLoading ? "Searching..." : "Search"}
                         </Button>
-                        <Button variant="outline" onClick={handleClear}>Clear</Button>
+                        <Button variant="outline" onClick={handleClear}>
+                          Clear
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -280,8 +169,12 @@ export default function SearchDiseasePage() {
                   <div className="mt-4 rounded-lg border bg-blue-50/70 text-blue-900 p-4">
                     <div className="font-semibold mb-1">Example Diagnoses</div>
                     <div className="text-sm space-y-1">
-                      <div><span className="font-semibold">Prameha:</span> Diabetes-related conditions (NAMASTE)</div>
-                      <div><span className="font-semibold">Jwara:</span> Febrile illnesses / Fever</div>
+                      <div>
+                        <span className="font-semibold">Prameha:</span> Diabetes-related conditions (NAMASTE)
+                      </div>
+                      <div>
+                        <span className="font-semibold">Jwara:</span> Febrile illnesses / Fever
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -351,12 +244,12 @@ export default function SearchDiseasePage() {
                       <div className="col-span-2">ICD-11 Code</div>
                       <div className="col-span-1">Insurance</div>
                     </div>
-                    
+
                     {/* Table Body */}
                     <div className="max-h-64 overflow-y-auto">
                       {searchHistory.map((item) => (
-                        <div 
-                          key={item.id} 
+                        <div
+                          key={item.id}
                           className="grid grid-cols-12 gap-4 px-4 py-3 border-b hover:bg-muted/30 cursor-pointer transition-colors"
                           onClick={() => {
                             setQuery(item.query)
@@ -370,7 +263,9 @@ export default function SearchDiseasePage() {
                             </div>
                           </div>
                           <div className="col-span-2 font-medium text-sm">{item.query}</div>
-                          <div className="col-span-3 text-sm truncate" title={item.disease}>{item.disease}</div>
+                          <div className="col-span-3 text-sm truncate" title={item.disease}>
+                            {item.disease}
+                          </div>
                           <div className="col-span-2">
                             <Badge variant="outline" className="font-mono text-xs">
                               {item.namasteCode}
@@ -382,8 +277,8 @@ export default function SearchDiseasePage() {
                             </Badge>
                           </div>
                           <div className="col-span-1">
-                            <Badge 
-                              variant={item.insuranceEligible ? "default" : "secondary"} 
+                            <Badge
+                              variant={item.insuranceEligible ? "default" : "secondary"}
                               className={`text-xs ${item.insuranceEligible ? "bg-green-100 text-green-800" : ""}`}
                             >
                               {item.insuranceEligible ? "Eligible" : "Not Eligible"}
@@ -392,7 +287,7 @@ export default function SearchDiseasePage() {
                         </div>
                       ))}
                     </div>
-                    
+
                     <div className="text-xs text-muted-foreground mt-2 text-center">
                       Click on any row to search again
                     </div>
@@ -424,7 +319,9 @@ export default function SearchDiseasePage() {
                 <Search className="w-5 h-5" />
                 Disease Translator
               </CardTitle>
-              <CardDescription>Enter a disease/diagnosis name to find mapped NAMASTE ↔ ICD-11 codes and metadata</CardDescription>
+              <CardDescription>
+                Enter a disease/diagnosis name to find mapped NAMASTE ↔ ICD-11 codes and metadata
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-4">
@@ -436,9 +333,13 @@ export default function SearchDiseasePage() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                    className="border border-black focus-visible:ring-1 focus-visible:ring-black focus-visible:ring-offset-0"
                   />
                 </div>
-                <div className="flex items-end">
+                <div className="flex items-end gap-2">
+                  <Button variant="outline" size="icon" aria-label="Voice search" onClick={handleVoiceInput}>
+                    <Mic className="w-4 h-4" />
+                  </Button>
                   <Button onClick={handleSearch} disabled={isLoading}>
                     <Search className="w-4 h-4 mr-2" />
                     {isLoading ? "Searching..." : "Search"}
@@ -554,12 +455,12 @@ export default function SearchDiseasePage() {
                     <div className="col-span-2">ICD-11 Code</div>
                     <div className="col-span-1">Insurance</div>
                   </div>
-                  
+
                   {/* Table Body */}
                   <div className="max-h-64 overflow-y-auto">
                     {searchHistory.map((item) => (
-                      <div 
-                        key={item.id} 
+                      <div
+                        key={item.id}
                         className="grid grid-cols-12 gap-4 px-4 py-3 border-b hover:bg-muted/30 cursor-pointer transition-colors"
                         onClick={() => {
                           setQuery(item.query)
@@ -573,7 +474,9 @@ export default function SearchDiseasePage() {
                           </div>
                         </div>
                         <div className="col-span-2 font-medium text-sm">{item.query}</div>
-                        <div className="col-span-3 text-sm truncate" title={item.disease}>{item.disease}</div>
+                        <div className="col-span-3 text-sm truncate" title={item.disease}>
+                          {item.disease}
+                        </div>
                         <div className="col-span-2">
                           <Badge variant="outline" className="font-mono text-xs">
                             {item.namasteCode}
@@ -585,8 +488,8 @@ export default function SearchDiseasePage() {
                           </Badge>
                         </div>
                         <div className="col-span-1">
-                          <Badge 
-                            variant={item.insuranceEligible ? "default" : "secondary"} 
+                          <Badge
+                            variant={item.insuranceEligible ? "default" : "secondary"}
                             className={`text-xs ${item.insuranceEligible ? "bg-green-100 text-green-800" : ""}`}
                           >
                             {item.insuranceEligible ? "Eligible" : "Not Eligible"}
@@ -595,10 +498,8 @@ export default function SearchDiseasePage() {
                       </div>
                     ))}
                   </div>
-                  
-                  <div className="text-xs text-muted-foreground mt-2 text-center">
-                    Click on any row to search again
-                  </div>
+
+                  <div className="text-xs text-muted-foreground mt-2 text-center">Click on any row to search again</div>
                 </CardContent>
               </Card>
             </div>
