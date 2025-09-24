@@ -46,6 +46,3 @@ Namah API is a modular, scalable, and secure API that enables seamless mapping b
 
 ---
 
-## 📊 Architecture Diagram (ASCII Representation)
-
-
