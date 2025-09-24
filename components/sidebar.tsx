@@ -39,10 +39,10 @@ export function Sidebar() {
         <div className="flex items-center h-16 border-b border-sidebar-border">
   <div className="flex items-center">
     <Image
-      src="/logo.png"
+      src="/logo1.png"
       alt="AYUSH Logo"
-      width={150}
-      height={150}
+      width={100}
+      height={100}
       className="rounded-lg object-contain"
     />
   </div>
