@@ -41,7 +41,7 @@ export function Header() {
         <div className="relative flex w-full items-center">
           <div className="flex items-center gap-4">
             {/* Replace text with logo image */}
-            <Image src="/logo.png" alt="Naमः Logo" width={100} height={40} className="rounded-lg" />
+            <Image src="/logo1.png" alt="Naमः Logo" width={100} height={40} className="rounded-lg" />
             <Badge variant="secondary" className="hidden sm:inline-flex">
               v2.1.0
             </Badge>
