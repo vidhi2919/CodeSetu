@@ -18,6 +18,7 @@ export function Header() {
       if (stored) {
         const parsed = JSON.parse(stored)
         setIsLoggedIn(Boolean(parsed?.loggedIn))
+        router.push("/home")
       } else {
         setIsLoggedIn(false)
       }
