@@ -1,4 +1,4 @@
-# Namah API
+# Namah
 
 **High-Level Architecture for AYUSH ↔ ICD-11 Dual Coding**
 
