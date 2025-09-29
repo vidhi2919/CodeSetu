@@ -108,7 +108,6 @@
 #                 })
 
 #     return {"query": term, "icd_results": icd_results}
-
 from fastapi import FastAPI, Query, HTTPException
 import httpx, csv, os, time
 
@@ -183,13 +182,13 @@ async def fetch_icd11_code(term: str, token: str):
                 "API-Version": "v2"
             }
         )
-    print("Hiii,resp:", resp.json())
+
     if resp.status_code != 200:
         print("Failed to fetch search results")
         return None, None
 
     entities = resp.json().get("destinationEntities", []) + resp.json().get("results", [])
-    print("Hiii,entities:", entities)
+ 
     if entities:
         item = entities[0]  # take first match
         icd_code = item.get("theCode")
@@ -200,104 +199,102 @@ async def fetch_icd11_code(term: str, token: str):
 
 
 
-# -------------------- FHIR Endpoint --------------------
-@app.get("/search_icd_fhir")
-async def search_icd_fhir(term: str = Query(..., description="Enter English disease term")):
-    token = await get_who_token()
-    results = []
 
-    for source, terms in [("Ayurveda", ayurveda_terms), ("Unani", unani_terms), ("Siddha", siddha_terms)]:
-        for row in terms:
-            english_name = row.get("Name English")
-            if english_name and term.lower() in english_name.lower():
-                
-                # Fetch ICD-11 code
-                icd_code, icd_display = await fetch_icd11_code(term, token)
-                
-                # Prepare TM2 code if applicable
-                tm2_code = "-"
-                if "TM2" in english_name:
-                    # Take first 4 characters of NAMASTE code before '('
-                    namaste_code = row.get("NAMC_CODE") or row.get("NUMC_CODE") or row.get("NAMC_TERM") or ""
-                    tm2_code = namaste_code.split("(")[0][:4] if namaste_code else "-"
-                
-                param = {
-                    "resourceType": "Parameters",
-                    "parameter": [
-                        {"name": "source", "valueString": source},
-                        {"name": "code", "valueString": row.get("NAMC_CODE") or row.get("NUMC_CODE")},
-                        {"name": "display", "valueString": english_name},
-                        {"name": "definition", "valueString": row.get("Long_definition") or row.get("Short_definition") or "-"},
-                        {"name": "icd11_biomedicine_code", "valueString": icd_code or "-"},
-                        {"name": "icd11_display", "valueString": icd_display or "-"},
-                        {"name": "TM2_code", "valueString": tm2_code}  
-                    ]
-                }
-                results.append(param)
-
-    return {"query": term, "results": results}
-
-
-# -------------------- FHIR Translate by Code --------------------
-# @app.get("/translate_fhir_by_code")
-# async def translate_fhir_by_code(code: str = Query(..., description="Enter NAMASTE, TM2 or ICD-11 code")):
+#--------------------- FHIR Search by Term --------------------
+# @app.get("/search_icd_fhir")
+# async def search_icd_fhir(term: str = Query(..., description="Enter English disease term")):
 #     token = await get_who_token()
 #     results = []
 
 #     for source, terms in [("Ayurveda", ayurveda_terms), ("Unani", unani_terms), ("Siddha", siddha_terms)]:
 #         for row in terms:
-#             namaste_code = row.get("NAMC_CODE") or row.get("NUMC_CODE") or ""
-#             english_name = row.get("Name English") or row.get("NUMC_TERM") or row.get("NAMC_TERM") or ""
-
-#             # -------------------- Check if input matches NAMASTE code --------------------
-#             if code.upper() == namaste_code.split("(")[0][:4].upper():  # input code matches NAMASTE/TM2 code
-#                 # TM2 code = first 4 chars of NAMASTE code
-#                 tm2_code = namaste_code.split("(")[0][:4] if namaste_code else "-"
-#                 # Fetch ICD-11 code using English name
-#                 icd_code, icd_display = await fetch_icd11_code(english_name, token)
-
+#             english_name = row.get("Name English")
+#             if english_name and term.lower() in english_name.lower():
+                
+#                 # Fetch ICD-11 code
+#                 icd_code, icd_display = await fetch_icd11_code(term, token)
+                
+#                 # Prepare TM2 code if applicable
+#                 tm2_code = "-"
+#                 if "TM2" in english_name:
+#                     # Take first 4 characters of NAMASTE code before '('
+#                     namaste_code = row.get("NAMC_CODE") or row.get("NUMC_CODE") or row.get("NAMC_TERM") or ""
+#                     tm2_code = namaste_code.split("(")[0][:4] if namaste_code else "-"
+                
 #                 param = {
 #                     "resourceType": "Parameters",
 #                     "parameter": [
 #                         {"name": "source", "valueString": source},
-#                         {"name": "NAMASTE_code", "valueString": namaste_code},
-#                         {"name": "TM2_code", "valueString": tm2_code},
+#                         {"name": "code", "valueString": row.get("NAMC_CODE") or row.get("NUMC_CODE")},
+#                         {"name": "display", "valueString": english_name},
+#                         {"name": "definition", "valueString": row.get("Long_definition") or row.get("Short_definition") or "-"},
 #                         {"name": "icd11_biomedicine_code", "valueString": icd_code or "-"},
-#                         {"name": "icd11_display", "valueString": icd_display or "-"}
+#                         {"name": "icd11_display", "valueString": icd_display or "-"},
+#                         {"name": "TM2_code", "valueString": tm2_code}  
 #                     ]
 #                 }
 #                 results.append(param)
 
-#             # -------------------- Check if input matches TM2 code --------------------
-#             elif code.upper() == (namaste_code.split("(")[0][:4].upper() if namaste_code else ""):
-#                 icd_code, icd_display = await fetch_icd11_code(english_name, token)
-#                 param = {
-#                     "resourceType": "Parameters",
-#                     "parameter": [
-#                         {"name": "source", "valueString": source},
-#                         {"name": "TM2_code", "valueString": code.upper()},
-#                         {"name": "NAMASTE_code", "valueString": namaste_code},
-#                         {"name": "icd11_biomedicine_code", "valueString": icd_code or "-"},
-#                         {"name": "icd11_display", "valueString": icd_display or "-"}
-#                     ]
-#                 }
-#                 results.append(param)
+#     return {"query": term, "results": results}
 
-#             # -------------------- Check if input matches ICD-11 code --------------------
-#             elif code.upper() == row.get("ICD11_CODE", "").upper():
-#                 param = {
-#                     "resourceType": "Parameters",
-#                     "parameter": [
-#                         {"name": "source", "valueString": source},
-#                         {"name": "NAMASTE_code", "valueString": namaste_code},
-#                         {"name": "TM2_code", "valueString": namaste_code.split("(")[0][:4] if namaste_code else "-"},
-#                         {"name": "icd11_biomedicine_code", "valueString": code.upper()},
-#                         {"name": "icd11_display", "valueString": row.get("ICD11_DISPLAY", "-")}
-#                     ]
-#                 }
-#                 results.append(param)
 
-#     return {"query_code": code, "results": results}
+
+
+
+@app.get("/search_icd_fhir")
+async def search_icd_fhir(
+    term: str = Query(..., description="Enter disease term"),
+    language: str = Query("english", description="Choose language: english, sanskrit, tamil, arabic")
+):
+    """
+    Search disease term in the selected language and return ICD-11 mapping + other info.
+    """
+    token = await get_who_token()
+    results = []
+
+    for source, terms in [("Ayurveda", ayurveda_terms), ("Unani", unani_terms), ("Siddha", siddha_terms)]:
+        for row in terms:
+            # choose the correct field based on language
+            if language.lower() == "english":
+                display_field = row.get("Name English") or ""
+            elif language.lower() == "sanskrit":
+                display_field = row.get("NAMC_TERM") or ""
+            elif language.lower() == "tamil":
+                display_field = row.get("NAMC_TERM") or ""
+            elif language.lower() == "arabic":
+                display_field = row.get("NAMC_TERM") or ""
+            else:
+                raise HTTPException(400, "Invalid language. Choose english, sanskrit, tamil, arabic.")
+
+            if display_field and term.lower() in display_field.lower():
+                # Fetch ICD-11 code using English name (keyword search)
+                english_name = row.get("Name English") or ""
+                icd_code, icd_display = await fetch_icd11_code_from_name(english_name, token)
+
+                # TM2 code logic (only for Ayurveda)
+                tm2_code = "-"
+                if source == "Ayurveda" and "TM2" in english_name:
+                    namaste_code = row.get("NAMC_CODE") or row.get("NUMC_CODE") or row.get("NAMC_TERM") or ""
+                    tm2_code = namaste_code.split("(")[0][:4] if namaste_code else "-"
+
+                param = {
+                    "resourceType": "Parameters",
+                    "parameter": [
+                        {"name": "source", "valueString": source},
+                        {"name": "code", "valueString": row.get("NAMC_CODE") or row.get("NUMC_CODE")},
+                        {"name": "display", "valueString": display_field},
+                        {"name": "definition", "valueString": row.get("Long_definition") or row.get("Short_definition") or "-"},
+                        {"name": "icd11_biomedicine_code", "valueString": icd_code or "-"},
+                        {"name": "icd11_display", "valueString": icd_display or "-"},
+                        {"name": "TM2_code", "valueString": tm2_code}
+                    ]
+                }
+                results.append(param)
+
+    return {"query": term, "language": language, "results": results}
+
+
+#-------------------- Helper to fetch ICD-11 code from English name --------------------
 
 
 async def fetch_icd11_code_from_name(english_name: str, token: str):
@@ -341,12 +338,11 @@ async def translate_fhir_by_code(
             # ---------------- TM2 code logic ----------------
             tm2_code = "-"
             if "TM2" in english_name:
-                print("Hiii,namaste_code:", namaste_code)
                 tm2_code = namaste_code.split("(")[0][:4]
 
             # ---------------- NAMASTE → TM2 ----------------
             if mode == "namaste_to_tm2" and code.upper() == namaste_code.upper() and tm2_code != "-":
-                print("Hii",tm2_code)
+                
                 results.append({"NAMASTE_code": namaste_code, "TM2_code": tm2_code, "source": source})
 
             # ---------------- TM2 → Biomedicine ----------------
