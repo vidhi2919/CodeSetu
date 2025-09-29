@@ -111,6 +111,13 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import httpx, csv, os, time
+from app.routes import users, search, translate, bundle, admin, audit
+import pandas as pd
+import numpy as np
+import re
+import faiss
+from sentence_transformers import SentenceTransformer
+
 
 app = FastAPI(
     title="Ayush ↔ ICD-11 Terminology Service",
@@ -211,7 +218,63 @@ async def fetch_icd11_code(term: str, token: str):
 
     return None, None
 
+# -------------------- Symptom Tracking Setup --------------------
+# INSERT YOUR SYMPTOM TRACKING CODE HERE
+# - Convert CSVs to DataFrames
+# - Clean Long_definition
+# - Negation tagging
+# - Create disease_objects
+# - Generate embeddings with SentenceTransformer
+# - Build FAISS index
+# - Define pattern for negation
 
+df_ayurveda = pd.DataFrame(ayurveda_terms)
+df_ayurveda["System"] = "Ayurveda"
+df_siddha = pd.DataFrame(siddha_terms)
+df_siddha["System"] = "Siddha"
+df_unani = pd.DataFrame(unani_terms)
+df_unani["System"] = "Unani"
+
+df_all = pd.concat([df_ayurveda, df_siddha, df_unani], ignore_index=True)
+df_all.drop_duplicates(inplace=True)
+df_all["Long_definition"] = df_all["Long_definition"].fillna("")
+
+def normalize_text(text):
+    text = text.lower()
+    text = re.sub(r"[^\w\s\-]", " ", text, flags=re.UNICODE)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+df_all["Cleaned_Description"] = df_all["Long_definition"].apply(normalize_text)
+
+neg_words = ["no", "not", "without", "absence of", "lacking", "never"]
+pattern = r"\b(" + "|".join(re.escape(w) for w in neg_words) + r")\b"
+df_all["Cleaned_Description"] = df_all["Cleaned_Description"].apply(
+    lambda x: re.sub(pattern, lambda m: "NEG_" + m.group(1), x, flags=re.IGNORECASE)
+)
+
+disease_objects = []
+for _, row in df_all.iterrows():
+    system = row["System"]
+    disease_id = row.get("NAMC_ID") if system in ["Ayurveda", "Siddha"] else row.get("NUMC_ID")
+    disease_code = row.get("NAMC_CODE") if system in ["Ayurveda", "Siddha"] else row.get("NUMC_CODE")
+    disease_objects.append({
+        "id": disease_id,
+        "code": disease_code,
+        "name": row.get("Name English"),
+        "description": row["Cleaned_Description"]
+    })
+
+model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+descriptions = [d['description'] for d in disease_objects]
+embeddings = model.encode(descriptions, batch_size=32)
+embeddings = np.array(embeddings).astype('float32')
+faiss.normalize_L2(embeddings)
+for i, d in enumerate(disease_objects):
+    d['embedding'] = embeddings[i]
+embedding_dim = embeddings.shape[1]
+index = faiss.IndexFlatIP(embedding_dim)
+index.add(embeddings)
 
 
 #--------------------- FHIR Search by Term --------------------
@@ -433,3 +496,48 @@ async def expand_value_set(
     # Return just the list of names
     return {"suggestions": suggestions}
 
+
+
+@app.get("/search_symptoms")
+async def search_symptoms_endpoint(query: str, k: int = 5):
+    query_clean = re.sub(r"[^\w\s\-]", " ", query.lower())
+    query_clean = re.sub(r"\s+", " ", query_clean).strip()
+    query_clean = re.sub(pattern, lambda m: "NEG_" + m.group(1), query_clean, flags=re.IGNORECASE)
+    
+    query_emb = model.encode([query_clean]).astype('float32')
+    faiss.normalize_L2(query_emb)
+    distances, indices = index.search(query_emb, k)
+
+    results = []
+
+    async with httpx.AsyncClient() as client:
+        for i, idx in enumerate(indices[0]):
+            d = disease_objects[idx]
+            # Default ICD code placeholder
+            icd_code = "-"
+            
+            # Call FHIR translation API for this disease's code if it exists
+            if "code" in d and d["code"]:
+                try:
+                    fhir_resp = await client.get(
+                        "http://127.0.0.1:8000/translate_fhir_by_code",
+                        params={"code": d["code"], "mode": "namaste_to_biomedicine"},
+                        timeout=10
+                    )
+                    fhir_data = fhir_resp.json()
+                    if fhir_data["results"]:
+                        # Take the first ICD code from the results array
+                        icd_code = fhir_data["results"][0].get("icd11_code", "-")
+                except Exception as e:
+                    print(f"Error fetching ICD code for {d['name']}: {e}")
+
+            results.append({
+                "name": d['name'],
+                "id": d['id'],
+                "code": d.get('code', ''),
+                "description": d['description'],
+                "similarity": float(distances[0][i]),
+                "icd11_code": icd_code  # return ICD code to frontend
+            })
+
+    return {"query": query, "results": results}

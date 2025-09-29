@@ -33,42 +33,38 @@ export default function SymptomCheckerPage() {
   }
 
   const handleAnalyze = async () => {
-    if (!symptoms.trim()) return
+  if (!symptoms.trim()) return;
 
-    setIsLoading(true)
+  setIsLoading(true);
+  setResults([]); // clear previous results
 
-    // Mock analysis results
-    setTimeout(() => {
-      const mockResults = [
-        {
-          disease: "Prameha (Diabetes Mellitus)",
-          description: "Metabolic disorder with high blood sugar levels",
-          namasteCode: "NAM-E10.9",
-          icd11Code: "5A14.0",
-          confidence: 92,
-          matchingSymptoms: ["Excessive thirst", "Frequent urination", "Fatigue"],
-        },
-        {
-          disease: "Mutraghata (Urinary Retention)",
-          description: "Difficulty in urination with associated complications",
-          namasteCode: "NAM-N39.0",
-          icd11Code: "GC90.0",
-          confidence: 68,
-          matchingSymptoms: ["Frequent urination"],
-        },
-        {
-          disease: "Netra Roga (Eye Disorders)",
-          description: "Various eye-related disorders affecting vision",
-          namasteCode: "NAM-H54.9",
-          icd11Code: "9D90.Z",
-          confidence: 45,
-          matchingSymptoms: ["Blurred vision"],
-        },
-      ]
-      setResults(mockResults)
-      setIsLoading(false)
-    }, 1500)
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/search_symptoms?query=${encodeURIComponent(symptoms)}&k=5`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch results");
+    }
+    const data = await response.json();
+
+    const transformedResults = data.results.map((item: any) => ({
+      disease: item.name,
+      description: item.description,
+      namasteCode: item.code,
+      icd11Code: item.icd11_code || "-", // <-- use the ICD code returned from backend
+      confidence: Math.round(item.similarity * 100), // FAISS similarity as confidence
+      matchingSymptoms: [], // optional, still empty for now
+    }));
+
+    setResults(transformedResults);
+  } catch (error) {
+    console.error("Error fetching symptom analysis:", error);
+  } finally {
+    setIsLoading(false);
   }
+};
+
+
 
   // Initial centered state - matching search-code page layout exactly
   if (results.length === 0) {
