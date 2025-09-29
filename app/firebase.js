@@ -28,6 +28,7 @@
 // firebase.js
 import { initializeApp, getApps, getApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
+import { getFirestore } from "firebase/firestore"
 
 let app
 
@@ -56,3 +57,4 @@ if (typeof window !== "undefined") {
 const auth = getAuth(app)
 
 export { auth }
+export const db = getFirestore(app)
