@@ -1122,6 +1122,7 @@ interface SearchHistoryItem {
 export default function SearchDiseasePage() {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<any>(null)
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false)
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([])
   const [selectedLanguage, setSelectedLanguage] = useState("english")
@@ -1130,40 +1131,73 @@ export default function SearchDiseasePage() {
   const handleVoiceInput = () => {}
 
   const handleSearch = async () => {
-    if (!query.trim()) return
+    if (!query.trim()) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
+    setResults(null);
 
-    // Mock search results
-    setTimeout(() => {
-      const mockResult = {
-        disease: "Prameha (Diabetes Mellitus)",
-        description:
-          "A metabolic disorder characterized by high blood sugar levels due to insulin deficiency or resistance. In AYUSH, Prameha is classified as a disorder of metabolism affecting multiple body systems.",
-        namasteCode: "NAM-E10.9",
-        icd11Code: "5A14.0",
-        category: "Endocrine, nutritional or metabolic diseases",
-        insuranceEligible: true,
-        relatedDiseases: ["Prameha (Type 2)", "Madhumeha (alternate name)"],
-        symptoms: ["Excessive urination", "Increased thirst", "Fatigue", "Blurred vision"],
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/search_icd_fhir?term=${encodeURIComponent(query)}&language=${selectedLanguage}`);
+      const data = await res.json();
+
+      // Optional: you can map your JSON into a frontend-friendly format
+      const mappedResults = data.results.map((item: any) => ({
+        source: item.parameter.find((p: any) => p.name === "source")?.valueString,
+        code: item.parameter.find((p: any) => p.name === "code")?.valueString,
+        display: item.parameter.find((p: any) => p.name === "display")?.valueString,
+        definition: item.parameter.find((p: any) => p.name === "definition")?.valueString,
+        icd11Code: item.parameter.find((p: any) => p.name === "icd11_biomedicine_code")?.valueString,
+        icd11Display: item.parameter.find((p: any) => p.name === "icd11_display")?.valueString,
+        TM2Code: item.parameter.find((p: any) => p.name === "TM2_code")?.valueString,
+      }));
+
+      setResults(mappedResults);
+
+      // Optionally, store first result in search history
+      if (mappedResults.length > 0) {
+        const first = mappedResults[0];
+        const newSearchItem: SearchHistoryItem = {
+          id: Date.now().toString(),
+          query: query,
+          disease: first.display,
+          namasteCode: first.code,
+          icd11Code: first.icd11Code,
+          timestamp: new Date(),
+          insuranceEligible: false, // update if your API returns insurance info
+        };
+        setSearchHistory((prev) => [newSearchItem, ...prev.slice(0, 9)]);
       }
-      setResults(mockResult)
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      // Add to search history
-      const newSearchItem: SearchHistoryItem = {
-        id: Date.now().toString(),
-        query: query,
-        disease: mockResult.disease,
-        namasteCode: mockResult.namasteCode,
-        icd11Code: mockResult.icd11Code,
-        timestamp: new Date(),
-        insuranceEligible: mockResult.insuranceEligible,
-      }
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
 
-      setSearchHistory((prev) => [newSearchItem, ...prev.slice(0, 9)]) // Keep last 10 searches
-      setIsLoading(false)
-    }, 1000)
-  }
+    if (!value.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/ValueSet/$expand?filter=${encodeURIComponent(value)}&language=${selectedLanguage}`);
+      const data = await res.json();
+      setSuggestions(data.suggestions || []);
+    } catch (err) {
+      console.error("Autocomplete error:", err);
+    }
+  };
+
+  const handleSelectSuggestion = (name: string) => {
+    setQuery(name);
+    setSuggestions([]);
+    handleSearch(); // trigger your main search API
+  };
+
 
   const handleClear = () => {
     setQuery("")
@@ -1249,14 +1283,33 @@ export default function SearchDiseasePage() {
                         </Select>
 
                         {/* Search Input */}
-                        <Input
-                          id="disease"
-                          placeholder="Type condition name, code, or symptoms..."
-                          value={query}
-                          onChange={(e) => setQuery(e.target.value)}
-                          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                          className="flex-1 border border-black focus-visible:ring-1 focus-visible:ring-black focus-visible:ring-offset-0"
-                        />
+                        <div className="relative flex-1">
+                          <Input
+                            id="disease"
+                            placeholder="Type condition name, code, or symptoms..."
+                            value={query}
+                            onChange={handleInputChange}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSearch();
+                            }}
+                            className="w-full border border-black focus-visible:ring-1 focus-visible:ring-black focus-visible:ring-offset-0"
+                          />
+
+                          {suggestions.length > 0 && (
+                            <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded shadow mt-1 max-h-60 overflow-y-auto">
+                              {suggestions.map((s, idx) => (
+                                <li
+                                  key={idx}
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                  onClick={() => handleSelectSuggestion(s)}
+                                >
+                                  {s}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+
 
                         {/* Voice Search Button */}
                         <Button variant="outline" size="icon" aria-label="Voice search" onClick={handleVoiceInput}>
@@ -1480,14 +1533,11 @@ export default function SearchDiseasePage() {
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="english">English</SelectItem>
-                        <SelectItem value="hindi">हिंदी</SelectItem>
-                        <SelectItem value="bengali">বাংলা</SelectItem>
-                        <SelectItem value="tamil">தமிழ்</SelectItem>
-                        <SelectItem value="telugu">తెలుగు</SelectItem>
-                        <SelectItem value="marathi">मराठी</SelectItem>
-                        <SelectItem value="gujarati">ગુજરાતી</SelectItem>
-                        <SelectItem value="kannada">ಕನ್ನಡ</SelectItem>
+                             <SelectItem value="english">English</SelectItem>
+                           <SelectItem value="hindi">हिंदी(Hindi)</SelectItem>
+                             <SelectItem value="sanskrit">संस्कृत(Sanskrit)</SelectItem> 
+                             <SelectItem value="tamil">தமிழ்(Tamil)</SelectItem>
+                             <SelectItem value="arabic">عربي(Arabic)</SelectItem> 
                       </SelectContent>
                     </Select>
 
@@ -1530,58 +1580,33 @@ export default function SearchDiseasePage() {
             </CardContent>
           </Card>
 
-          {results && (
-            <Card>
+          {results && results.length > 0 && results.map((res: any, idx: number) => (
+            <Card key={idx} className="mb-4">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  {results.disease}
-                  {results.insuranceEligible && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      Insurance Eligible
-                    </Badge>
-                  )}
+                  {res.display} ({res.source})
                 </CardTitle>
-                <CardDescription>{results.category}</CardDescription>
+                <CardDescription>{res.definition}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{results.description}</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-cyan-50 dark:bg-cyan-950 rounded-lg">
-                    <h4 className="font-semibold text-cyan-800 dark:text-cyan-200 mb-2">NAMASTE Code</h4>
-                    <p className="text-lg font-mono">{results.namasteCode}</p>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="p-4 bg-cyan-50 rounded-lg">
+                    <h4 className="font-semibold mb-2">NAMASTE Code</h4>
+                    <p className="font-mono">{res.code}</p>
                   </div>
-                  <div className="p-4 bg-amber-50 dark:bg-amber-950 rounded-lg">
-                    <h4 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">ICD-11 Code</h4>
-                    <p className="text-lg font-mono">{results.icd11Code}</p>
+                  <div className="p-4 bg-amber-50 rounded-lg">
+                    <h4 className="font-semibold mb-2">ICD-11 Biomedicine Code</h4>
+                    <p className="font-mono">{res.icd11Code} ({res.icd11Display})</p>
                   </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold mb-2">Common Symptoms</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {results.symptoms.map((symptom: string, index: number) => (
-                      <Badge key={index} variant="outline">
-                        {symptom}
-                      </Badge>
-                    ))}
+                  <div className="p-4 bg-amber-50 rounded-lg">
+                    <h4 className="font-semibold mb-2">ICD-11 TM2 Code</h4>
+                    <p className="font-mono">{res.TM2Code}</p>
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <ArrowRight className="w-4 h-4 mr-2" />
-                    View in Search by Code
-                  </Button>
-                  <Link href="/encounter">
-                    <Button variant="outline" size="sm">
-                      Add to Encounter Form
-                    </Button>
-                  </Link>
                 </div>
               </CardContent>
             </Card>
-          )}
+          ))}
+
 
           {/* How to Use box */}
           <div className="mt-6 max-w-5xl mx-auto">

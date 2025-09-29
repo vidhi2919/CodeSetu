@@ -109,12 +109,26 @@
 
 #     return {"query": term, "icd_results": icd_results}
 from fastapi import FastAPI, Query, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import httpx, csv, os, time
 
 app = FastAPI(
     title="Ayush ↔ ICD-11 Terminology Service",
     docs_url="/docs",
     redoc_url="/redoc"
+)
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # allow your frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],     # allow GET, POST, etc.
+    allow_headers=["*"],     # allow all headers
 )
 
 # -------------------- Load CSVs --------------------
@@ -367,3 +381,55 @@ async def translate_fhir_by_code(
                 })
 
     return {"query_code": code, "mode": mode, "results": results}
+
+@app.get("/ValueSet/$expand")
+async def expand_value_set(
+    filter: str = Query(..., description="Text filter for autocomplete"),
+    language: str = Query("english", description="Choose language: english, sanskrit, tamil, arabic")
+):
+    """
+    FHIR $expand operation for ValueSet.
+    Returns only display names for autocomplete (frontend will use name to call search API).
+    """
+    token = await get_who_token()
+    suggestions = []
+
+    # Search in NAMASTE (Ayurveda, Unani, Siddha)
+    for source, terms in [("Ayurveda", ayurveda_terms), ("Unani", unani_terms), ("Siddha", siddha_terms)]:
+        for row in terms:
+            if language.lower() == "english":
+                display_field = row.get("Name English") or ""
+            elif language.lower() == "sanskrit":
+                display_field = row.get("NAMC_TERM") or ""
+            elif language.lower() == "tamil":
+                display_field = row.get("NAMC_TERM") or ""
+            elif language.lower() == "arabic":
+                display_field = row.get("NAMC_TERM") or ""
+            else:
+                raise HTTPException(400, "Invalid language. Choose english, sanskrit, tamil, arabic.")
+
+            if display_field and filter.lower() in display_field.lower():
+                suggestions.append(display_field)
+
+    # Search in ICD-11 (Biomedicine)
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            WHO_SEARCH_URL,
+            params={"q": filter, "outputFormat": "json"},
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json",
+                "Accept-Language": "en",
+                "API-Version": "v2"
+            }
+        )
+        if resp.status_code == 200:
+            entities = resp.json().get("destinationEntities", []) + resp.json().get("results", [])
+            for item in entities[:5]:  # limit suggestions
+                if "title" in item:
+                    title = item["title"] if isinstance(item["title"], str) else item["title"].get("@value", "")
+                    suggestions.append(title)
+
+    # Return just the list of names
+    return {"suggestions": suggestions}
+
