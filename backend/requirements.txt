@@ -1,0 +1,7 @@
+fastapi
+httpx
+pandas
+numpy
+faiss-cpu
+sentence-transformers
+uvicorn
