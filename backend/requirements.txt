@@ -10,7 +10,8 @@ pytest
 pytest-asyncio
 httpx
 dotenv
-motorfastapi
+motor
+fastapi
 httpx
 pandas
 numpy
