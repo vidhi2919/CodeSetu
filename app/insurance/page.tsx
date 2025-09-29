@@ -45,19 +45,68 @@
 //   )
 // }
 
+"use client"
+
+import { useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { Shield } from "lucide-react"
-import { InsurancePreCheck } from "@/components/insurance-precheck"
 import { ChatbotWidget } from "@/components/chatbot-widget"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export default function InsurancePage() {
+  const [term, setTerm] = useState("")
+  const [status, setStatus] = useState<null | "eligible" | "pending" | "not_eligible">(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleCheck = async () => {
+    if (!term.trim()) return
+    setLoading(true)
+    setStatus(null)
+
+    try {
+      const res = await fetch(
+        `http://127.0.0.1:8000/search_icd_fhir?term=${encodeURIComponent(term)}&language=english`
+      )
+      const data = await res.json()
+
+      const results = data.results || []
+      let eligible = false
+      let pending = false
+
+      for (const item of results) {
+        const params = item.parameter || []
+
+        const icdParam = params.find((p: any) => p.name === "icd11_biomedicine_code")
+        const tm2Param = params.find((p: any) => p.name === "TM2_code")
+
+        if (icdParam && icdParam.valueString && icdParam.valueString !== "-") {
+          eligible = true
+          break
+        }
+        if (tm2Param && tm2Param.valueString && tm2Param.valueString !== "-") {
+          pending = true
+        }
+      }
+
+      if (eligible) setStatus("eligible")
+      else if (pending) setStatus("pending")
+      else setStatus("not_eligible")
+    } catch (err) {
+      console.error(err)
+      setStatus("not_eligible")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       <main className="flex-1 ml-64">
         <div className="p-6">
-          {/* Page Heading - exact match to search-code page */}
+          {/* Page Heading */}
           <div className="max-w-5xl mx-auto text-center mb-8">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3">
               <Shield className="w-6 h-6" />
@@ -68,14 +117,35 @@ export default function InsurancePage() {
             </p>
           </div>
 
-          {/* Main content - wrapped in same container as Search by Code */}
+          {/* Main Check Card */}
           <div className="flex items-start justify-center">
             <div className="w-full max-w-5xl">
-              <InsurancePreCheck />
+              <Card className="p-6 border-border/60 rounded-2xl">
+                <CardContent>
+                  <div className="flex gap-2 mb-4">
+                    <Input
+                      placeholder="Enter condition (English)"
+                      value={term}
+                      onChange={(e) => setTerm(e.target.value)}
+                    />
+                    <Button onClick={handleCheck} disabled={loading}>
+                      {loading ? "Checking..." : "Check"}
+                    </Button>
+                  </div>
+
+                  {status && (
+                    <div className="mt-4 text-lg font-semibold">
+                      {status === "eligible" && <span className="text-green-600">✅ Eligible</span>}
+                      {status === "pending" && <span className="text-yellow-600">⚠️ Pending (TM2 Code)</span>}
+                      {status === "not_eligible" && <span className="text-red-600">❌ Not Eligible</span>}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
 
-          {/* How to Use box - exact match to search-code */}
+          {/* How to Use Card */}
           <div className="max-w-5xl mx-auto mt-8">
             <Card className="bg-card/70 border-border/60 rounded-2xl">
               <CardHeader className="pb-2">
