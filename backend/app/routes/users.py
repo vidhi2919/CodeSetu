@@ -16,7 +16,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from app.db.mongo import db
-from models.user import UserCreate, UserResponse
+from app.models.user import UserCreate, UserResponse
 from datetime import datetime
 import firebase_admin
 from firebase_admin import auth
