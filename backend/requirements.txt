@@ -1,0 +1,13 @@
+fastapi
+pydantic
+pymongo
+uvicorn
+python-jose
+passlib
+python-multipart
+email-validator
+pytest
+pytest-asyncio
+httpx
+dotenv
+motor

@@ -111,6 +111,7 @@
 
 from fastapi import FastAPI, Query, HTTPException
 import httpx, csv, os, time
+from app.routes import users, search, translate, bundle, admin, audit
 
 app = FastAPI(
     title="Ayush ↔ ICD-11 Terminology Service",
@@ -371,3 +372,17 @@ async def translate_fhir_by_code(
                 })
 
     return {"query_code": code, "mode": mode, "results": results}
+
+
+
+
+
+
+##Vidhi backend
+
+app.include_router(users.router)
+app.include_router(search.router)
+app.include_router(translate.router)
+app.include_router(bundle.router)
+app.include_router(admin.router)
+app.include_router(audit.router)  
