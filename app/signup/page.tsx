@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { auth } from "../firebase";
+
+import { auth, db } from "../firebase"   // ✅ make sure db (Firestore) is exported from firebase.ts
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -19,6 +21,7 @@ export default function SignupPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    abhaId: "", // ✅ new field
   })
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
@@ -32,23 +35,30 @@ export default function SignupPage() {
 
     setIsLoading(true)
     try {
-      // Create user with Firebase
+      // Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       )
+      const user = userCredential.user
 
-      // Update display name
+      // Update display name in Auth
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, {
           displayName: formData.name,
         })
       }
 
-      console.log("User signed up:", userCredential.user)
+      // Save extra fields in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name: formData.name,
+        email: formData.email,
+        abhaId: formData.abhaId, // ✅ save custom field
+        createdAt: new Date(),
+      })
 
-      // Redirect after signup
+      console.log("User signed up:", user)
       router.push("/dashboard")
     } catch (error: any) {
       console.error("Signup error:", error.message)
@@ -94,6 +104,16 @@ export default function SignupPage() {
                 placeholder="doctor@hospital.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="abhaId">ABHA ID</Label>
+              <Input
+                id="abhaId"
+                placeholder="e.g., 1234-5678-9012"
+                value={formData.abhaId}
+                onChange={(e) => setFormData({ ...formData, abhaId: e.target.value })}
                 required
               />
             </div>
