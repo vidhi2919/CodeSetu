@@ -158,8 +158,8 @@ WHO_SEARCH_URL = "https://id.who.int/icd/release/11/2025-01/mms/search"
 
 WHO_LOOKUP_URL = "https://id.who.int/fhir/CodeSystem/$lookup"
 
-CLIENT_ID = "ec6fc471-144d-436b-ae9e-4ae88689e663_4701e580-6b92-44f3-a56f-a5044fb67f8a"
-CLIENT_SECRET = "w35fJrzL/IGQgh3DObHEyq2a8UftwUwr8DXOkmU29pM="
+CLIENT_ID = "a1bf7b89-c705-4b2e-96c4-8344d4807151_488400f7-f778-4b1f-a461-71f985a4dc96"
+CLIENT_SECRET = "rZEZuH4ETp/NCdEYkITcXrIYKe8/Ly/gxADIg1udOHk="
 
 token_cache = {"access_token": None, "expires": 0}
 

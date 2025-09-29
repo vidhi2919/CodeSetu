@@ -9,245 +9,172 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Search, Code, ArrowRight } from "lucide-react"
 import { ChatbotWidget } from "@/components/chatbot-widget"
-import Link from "next/link";
+import Link from "next/link"
 
 export default function SearchCodePage() {
   const [code, setCode] = useState("")
-  const [results, setResults] = useState<any>(null)
+  const [results, setResults] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [mappingMode, setMappingMode] = useState<"namaste-biomed" | "tm2-biomed" | "namaste-tm2">("namaste-biomed")
 
   const handleSearch = async () => {
     if (!code.trim()) return
-
     setIsLoading(true)
-
-    // Mock search results
-    setTimeout(() => {
-      const mockResult = {
-        disease: "Prameha (Diabetes Mellitus)",
-        description:
-          "A metabolic disorder characterized by high blood sugar levels due to insulin deficiency or resistance. In AYUSH, Prameha is classified as a disorder of metabolism affecting multiple body systems.",
-        namasteCode: "NAM-E10.9",
-        icd11Code: "5A14.0",
-        category: "Endocrine, nutritional or metabolic diseases",
-        insuranceEligible: true,
-        relatedCodes: ["NAM-E11.9", "NAM-E13.9"],
-        symptoms: ["Excessive urination", "Increased thirst", "Fatigue", "Blurred vision"],
+    try {
+      const modeMap = {
+        "namaste-biomed": "namaste_to_biomedicine",
+        "tm2-biomed": "tm2_to_biomedicine",
+        "namaste-tm2": "namaste_to_tm2"
       }
-      setResults(mockResult)
+
+      const res = await fetch(
+        `http://localhost:8000/translate_fhir_by_code?code=${encodeURIComponent(code)}&mode=${modeMap[mappingMode]}`
+      )
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+
+      const data = await res.json()
+      setResults(data.results || [])
+    } catch (err) {
+      console.error(err)
+      setResults([])
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const handleClear = () => {
     setCode("")
-    setResults(null)
+    setResults([])
   }
 
-  // Initial centered state
-  if (!results) {
-    return (
-      <div className="flex min-h-screen bg-background">
-        <Sidebar />
-        <main className="flex-1 ml-64">
-          <div className="p-6">
-            {/* Page Heading (moved out of the box) */}
-            <div className="max-w-5xl mx-auto text-center mb-8">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3">
-                <Code className="w-6 h-6" />
-              </div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Code Translation</h1>
-              <p className="text-muted-foreground mt-1 text-base">Bidirectional NAMASTE ↔ ICD-11 code mapping</p>
-            </div>
-
-            <div className="flex items-start justify-center">
-              <Card className="w-full max-w-5xl bg-gradient-to-br from-muted/40 to-background rounded-2xl shadow-sm border-border/60">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <Code className="w-5 h-5" />
-                    Code Translator
-                  </CardTitle>
-                  <CardDescription className="text-base">Enter a medical code to find its equivalent mapping and metadata</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto]">
-                    <div className="flex flex-col">
-                      <Label htmlFor="code" className="text-sm">Medical Code</Label>
-                      <Input
-                        id="code"
-                        placeholder="NAM-E10.9 or 5A14.0"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                      />
-                    </div>
-                    <div className="flex items-end justify-end">
-                      <div className="flex gap-2">
-                        <Button onClick={handleSearch} disabled={isLoading}>
-                          <Search className="w-4 h-4 mr-2" />
-                          {isLoading ? "Searching..." : "Translate"}
-                        </Button>
-                        <Button variant="outline" onClick={handleClear}>Clear</Button>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Example chips */}
-                  <div className="mt-4 text-xs text-gray-500">
-                    Try: 
-                    <button className="ml-1 px-2 py-0.5 rounded-full border hover:bg-muted" onClick={() => { setCode("NAM-E10.9"); handleSearch(); }}>NAM-E10.9</button>
-                    <button className="ml-2 px-2 py-0.5 rounded-full border hover:bg-muted" onClick={() => { setCode("5A14.0"); handleSearch(); }}>5A14.0</button>
-                  </div>
-                  {/* Info box */}
-                  <div className="mt-4 rounded-lg border bg-blue-50/70 text-blue-900 p-4">
-                    <div className="font-semibold mb-1">Code Format Examples</div>
-                    <div className="text-sm space-y-1">
-                      <div><span className="font-semibold">NAMASTE:</span> NAM001, NAM002, etc.</div>
-                      <div><span className="font-semibold">ICD-11:</span> 8A00, 8A01, MG30, etc.</div>
-                    </div>
-                  </div>
-                </CardContent>
-                <div className="px-6 pb-6">
-                  <div className="grid sm:grid-cols-3 gap-3 text-xs text-gray-600">
-                    <div className="rounded-md border p-3 bg-background/60">1) Enter NAMASTE/ICD-11</div>
-                    <div className="rounded-md border p-3 bg-background/60">2) View mapped details</div>
-                    <div className="rounded-md border p-3 bg-background/60">3) Add to Encounter</div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* How to Use box */}
-            <div className="max-w-5xl mx-auto mt-8">
-              <Card className="bg-card/70 border-border/60 rounded-2xl">
-                <CardHeader className="pb-2">
-                  <CardTitle>How to Use Code Translation</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 py-6 min-h-[220px]">
-                  <div className="grid md:grid-cols-2 gap-8 text-base">
-                    <div>
-                      <h4 className="font-semibold mb-2 text-lg">For Healthcare Providers</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                        <li>Enter traditional NAMASTE codes to find ICD-11 equivalents</li>
-                        <li>Use for international reporting and insurance claims</li>
-                        <li>Copy codes directly to your medical records system</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2 text-lg">For Insurance Officers</h4>
-                      <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                        <li>Verify ICD-11 codes against traditional medicine practices</li>
-                        <li>Check insurance eligibility status for conditions</li>
-                        <li>Access multi-language condition names for verification</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </main>
-        <ChatbotWidget />
-      </div>
-    )
-  }
-
-  // Post-search layout
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       <main className="flex-1 ml-64">
         <div className="p-6">
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Code Translation</h1>
-            <p className="text-muted-foreground">Bidirectional NAMASTE ↔ ICD-11 code mapping</p>
+          {/* Page Heading */}
+          <div className="max-w-5xl mx-auto text-center mb-8">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-3">
+              <Code className="w-6 h-6" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Code Translation</h1>
+            <p className="text-muted-foreground mt-1 text-base">Bidirectional NAMASTE ↔ ICD-11 code mapping</p>
           </div>
 
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Code className="w-5 h-5" />
-                Code Translator
-              </CardTitle>
-              <CardDescription>Enter a medical code to find its equivalent mapping and metadata</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <Label htmlFor="code">Medical Code</Label>
-                  <Input
-                    id="code"
-                    placeholder="NAM-E10.9 or 5A14.0"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button onClick={handleSearch} disabled={isLoading}>
-                    <Search className="w-4 h-4 mr-2" />
-                    {isLoading ? "Searching..." : "Search"}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {results && (
-            <Card>
+          {/* Search Card with Results */}
+          <div className="flex items-start justify-center">
+            <Card className="w-full max-w-5xl bg-gradient-to-br from-muted/40 to-background rounded-2xl shadow-sm border-border/60">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  {results.disease}
-                  {results.insuranceEligible && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      Insurance Eligible
-                    </Badge>
-                  )}
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Code className="w-5 h-5" />
+                  Code Translator
                 </CardTitle>
-                <CardDescription>{results.category}</CardDescription>
+                <CardDescription className="text-base">Enter a medical code to find its equivalent mapping and metadata</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{results.description}</p>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto]">
+                  <div className="flex flex-col">
+                    <Label htmlFor="mappingMode" className="text-sm">Mapping Mode</Label>
+                    <select
+                      id="mappingMode"
+                      value={mappingMode}
+                      onChange={(e) => setMappingMode(e.target.value as any)}
+                      className="border rounded-md p-2 mb-2"
+                    >
+                      <option value="namaste-biomed">NAMASTE → Biomedicine</option>
+                      <option value="tm2-biomed">TM2 → Biomedicine</option>
+                      <option value="namaste-tm2">NAMASTE → TM2</option>
+                    </select>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-cyan-50 dark:bg-cyan-950 rounded-lg">
-                    <h4 className="font-semibold text-cyan-800 dark:text-cyan-200 mb-2">NAMASTE Code</h4>
-                    <p className="text-lg font-mono">{results.namasteCode}</p>
+                    <Label htmlFor="code" className="text-sm">Medical Code</Label>
+                    <Input
+                      id="code"
+                      placeholder="NAM-E10.9 or 5A14.0"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                    />
                   </div>
-                  <div className="p-4 bg-amber-50 dark:bg-amber-950 rounded-lg">
-                    <h4 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">ICD-11 Code</h4>
-                    <p className="text-lg font-mono">{results.icd11Code}</p>
+
+                  <div className="flex items-end justify-end">
+                    <div className="flex gap-2">
+                      <Button onClick={handleSearch} disabled={isLoading}>
+                        <Search className="w-4 h-4 mr-2" />
+                        {isLoading ? "Searching..." : "Translate"}
+                      </Button>
+                      <Button variant="outline" onClick={handleClear}>Clear</Button>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="font-semibold mb-2">Common Symptoms</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {results.symptoms.map((symptom: string, index: number) => (
-                      <Badge key={index} variant="outline">
-                        {symptom}
-                      </Badge>
+                {/* Render Results Inside Card */}
+                {results.length > 0 && (
+                  <div className="mt-6 space-y-4">
+                    {results.map((item, idx) => (
+                      <div key={idx} className="border rounded-lg p-4 bg-background/70">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold">{item.disease || item.NAMASTE_code || item.TM2_code}</h4>
+                          {item.insuranceEligible && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                              Insurance Eligible
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{item.description || item.icd11_display || "-"}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                          {item.NAMASTE_code && (
+                            <div className="p-2 bg-cyan-50 dark:bg-cyan-950 rounded-lg">
+                              <h5 className="font-semibold text-cyan-800 dark:text-cyan-200">NAMASTE Code</h5>
+                              <p className="font-mono">{item.NAMASTE_code}</p>
+                            </div>
+                          )}
+                          {item.icd11_code && (
+                            <div className="p-2 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                              <h5 className="font-semibold text-amber-800 dark:text-amber-200">ICD-11 Code</h5>
+                              <p className="font-mono">{item.icd11_code}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {item.symptoms && item.symptoms.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {item.symptoms.map((s: string, i: number) => (
+                              <Badge key={i} variant="outline">{s}</Badge>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 mt-2">
+                          <Button variant="outline" size="sm">
+                            <ArrowRight className="w-4 h-4 mr-2" />
+                            View in Search by Disease
+                          </Button>
+                          <Link href="/encounter">
+                            <Button variant="outline" size="sm">
+                              Add to Encounter Form
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <ArrowRight className="w-4 h-4 mr-2" />
-                    View in Search by Disease
-                  </Button>
-                  <Link href="/encounter">
-                    <Button variant="outline" size="sm">
-                      Add to Encounter Form
-                    </Button>
-                  </Link>
-                </div>
+                )}
               </CardContent>
-            </Card>
-          )}
 
-          {/* How to Use box */}
+              {/* Instruction Steps */}
+              <div className="px-6 pb-6">
+                <div className="grid sm:grid-cols-3 gap-3 text-xs text-gray-600">
+                  <div className="rounded-md border p-3 bg-background/60">1) Enter NAMASTE/ICD-11</div>
+                  <div className="rounded-md border p-3 bg-background/60">2) View mapped details</div>
+                  <div className="rounded-md border p-3 bg-background/60">3) Add to Encounter</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* How to Use Box */}
           <div className="mt-6 max-w-5xl mx-auto">
-            <Card className="bg-background rounded-2xl">
+            <Card className="bg-card/70 border-border/60 rounded-2xl">
               <CardHeader className="pb-2">
                 <CardTitle>How to Use Code Translation</CardTitle>
               </CardHeader>
