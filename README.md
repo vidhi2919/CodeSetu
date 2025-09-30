@@ -6,9 +6,9 @@ cd your-repo
 
 ## Start the backend (FastAPI)
 cd backend
-python -m venv venv        # optional virtual env
-source venv/bin/activate   # mac/linux
-venv\Scripts\activate      # windows
+python -m venv venv       
+source venv/bin/activate   
+venv\Scripts\activate     
 pip install -r requirements.txt
 uvicorn main:app --reload  # backend runs at http://127.0.0.1:8000
 
