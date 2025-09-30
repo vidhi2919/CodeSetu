@@ -1,10 +1,10 @@
 ##How to Run Locally
 
-#Clone the repo
+##Clone the repo
 git clone https://github.com/your-user/your-repo.git
 cd your-repo
 
-#Start the backend (FastAPI)
+##Start the backend (FastAPI)
 cd backend
 python -m venv venv        # optional virtual env
 source venv/bin/activate   # mac/linux
@@ -12,15 +12,15 @@ venv\Scripts\activate      # windows
 pip install -r requirements.txt
 uvicorn main:app --reload  # backend runs at http://127.0.0.1:8000
 
-#Start the frontend (Next.js)
+##Start the frontend (Next.js)
 cd ../frontend
 npm install
 npm run dev                # frontend runs at http://localhost:3000
 
-#Point frontend to backend (create .env.local in /frontend)
+##Point frontend to backend (create .env.local in /frontend)
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
 
-#Open http://localhost:3000 in your browser
+##Open http://localhost:3000 in your browser
 
 
 
